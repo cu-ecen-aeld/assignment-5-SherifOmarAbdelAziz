@@ -1,0 +1,39 @@
+#!/bin/sh
+
+mode="664"
+group="staff"
+
+case "$1" in
+    start)
+    	device="scull"
+    	echo "Load scull driver"
+    	cd /usr/bin
+    	scull_load
+################################
+
+
+	echo "Loading faulty driver"
+	cd /usr/bin
+	module_load faulty
+################################
+        
+	echo "Load hello"
+    	modprobe hello   	
+        ;;
+        
+    stop)
+    	echo "Unload hello"
+    	rmmod hello
+    	
+	cd /usr/bin
+    	echo "Unload scull"
+	scull_unload
+	
+	echo "Unload faulty"
+	module_unload faulty     	
+    	;;
+    *)
+    	echo "Usage: $0 {start|stop}"
+    exit 1	
+esac
+
