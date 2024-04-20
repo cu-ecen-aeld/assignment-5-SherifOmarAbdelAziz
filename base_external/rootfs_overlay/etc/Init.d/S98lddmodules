@@ -5,32 +5,79 @@ group="staff"
 
 case "$1" in
     start)
-    	device="scull"
-    	echo "Load scull driver"
-    	cd /usr/bin
-    	scull_load
-################################
+       echo "Starting assignment 7 modules"
+
+        insmod ./lib/modules/5.15.18/extra/scull.ko || exit 1
+        major=$(awk "\$2==\"scull\" {print \$1}" /proc/devices)
+
+	rm -f /dev/scull[0-3]
+        mknod /dev/scull0 c $major 0
+        mknod /dev/scull1 c $major 1
+        mknod /dev/scull2 c $major 2
+        mknod /dev/scull3 c $major 3
+        ln -sf scull0 /dev/scull
+        chgrp $group /dev/scull[0-3] 
+        chmod $mode  /dev/scull[0-3]
+
+        rm -f /dev/scullpipe[0-3]
+        mknod /dev/scullpipe0 c $major 4
+        mknod /dev/scullpipe1 c $major 5
+        mknod /dev/scullpipe2 c $major 6
+        mknod /dev/scullpipe3 c $major 7
+        ln -sf scullpipe0 /dev/scullpipe
+        chgrp $group /dev/scullpipe[0-3] 
+        chmod $mode  /dev/scullpipe[0-3]
+
+        rm -f /dev/scullsingle
+        mknod /dev/scullsingle  c $major 8
+        chgrp $group /dev/scullsingle
+        chmod $mode  /dev/scullsingle
+
+        rm -f /dev/sculluid
+        mknod /dev/sculluid   c $major 9
+        chgrp $group /dev/sculluid
+        chmod $mode  /dev/sculluid
+
+        rm -f /dev/scullwuid
+        mknod /dev/scullwuid  c $major 10
+        chgrp $group /dev/scullwuid
+        chmod $mode  /dev/scullwuid
+
+        rm -f /dev/scullpriv
+        mknod /dev/scullpriv  c $major 11
+        chgrp $group /dev/scullpriv
+        chmod $mode  /dev/scullpriv
 
 
-	echo "Loading faulty driver"
-	cd /usr/bin
-	module_load faulty
-################################
+        insmod ./lib/modules/5.15.18/extra/faulty.ko || exit 1
+        major=$(awk "\$2==\"faulty\" {print \$1}" /proc/devices)
+        if [ ! -z ${major} ]; then
+            rm -f /dev/faulty
+            mknod /dev/faulty c $major 0
+            chgrp $group /dev/faulty
+            chmod $mode  /dev/faulty
+        fi
         
 	echo "Load hello"
-    	modprobe hello   	
+    	#modprobe hello   	
         ;;
         
     stop)
-    	echo "Unload hello"
-    	rmmod hello
-    	
-	cd /usr/bin
-    	echo "Unload scull"
-	scull_unload
-	
-	echo "Unload faulty"
-	module_unload faulty     	
+        echo "Stopping assignment 7 modules"
+
+        rmmod scull || exit 1
+        rm -f /dev/scull /dev/scull[0-3] 
+        rm -f /dev/scullpriv
+        rm -f /dev/scullpipe /dev/scullpipe[0-3]
+        rm -f /dev/scullsingle
+        rm -f /dev/sculluid
+        rm -f /dev/scullwuid
+
+        rmmod hello || exit 1
+	rm -f /dev/hello
+
+	rmmod faulty || exit 1
+	rm -f /dev/faulty    	
     	;;
     *)
     	echo "Usage: $0 {start|stop}"
